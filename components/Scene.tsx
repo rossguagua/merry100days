@@ -8,7 +8,6 @@ import SnowParticles from './scene/SnowParticles';
 import BaseRings from './scene/BaseRings';
 import HeartTopper from './scene/HeartTopper';
 import WishAnimation from './scene/WishAnimation';
-import SurpriseHeart from './scene/SurpriseHeart';
 
 const TOPPER_POSITION = new THREE.Vector3(0, 5.2, 0);
 
@@ -58,8 +57,6 @@ const Scene: React.FC = () => {
       {/* WishAnimation is outside rotating group to have independent flight path logic relative to world */}
       <WishAnimation targetPosition={TOPPER_POSITION} />
       
-      <SurpriseHeart />
-
       <EffectComposer multisampling={0} enableNormalPass={false}>
         <Bloom 
           luminanceThreshold={0.2} 

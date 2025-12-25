@@ -1,4 +1,4 @@
-import React, { useRef, useState, useMemo, useEffect } from 'react';
+import React, { useRef, useState, useMemo } from 'react';
 
 // Lyrics data
 const LYRICS_RAW = `
@@ -227,8 +227,9 @@ const MusicPlayer: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [hasError, setHasError] = useState(false);
-  // Add a timestamp to bust cache if the file was just updated
-  const [audioUrl] = useState(() => `/lovesong.mp3?v=${Date.now()}`);
+  
+  // Use relative path without leading slash
+  const audioUrl = "lovesong.mp3";
 
   const lyrics = useMemo(() => parseLyrics(LYRICS_RAW), []);
 
@@ -285,9 +286,9 @@ const MusicPlayer: React.FC = () => {
         }}
         onError={(e) => {
             const error = e.currentTarget.error;
-            console.error("Audio source error:", error);
+            console.error("Audio source error details:", error);
             if (error && error.code === 4) {
-               console.warn("Media Error 4 (SRC_NOT_SUPPORTED): The file might be missing, 404 (serving HTML), or corrupted.");
+               console.warn(`Media Error 4 (SRC_NOT_SUPPORTED): File '${audioUrl}' missing or 404.`);
             }
             setHasError(true);
             setIsPlaying(false);
@@ -321,7 +322,7 @@ const MusicPlayer: React.FC = () => {
       {hasError && (
           <div className="mt-2 mr-2 text-right pointer-events-none max-w-[200px] md:max-w-xs">
             <p className="text-red-300 text-xs md:text-sm font-medium drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-              Music File Error
+              File not found (lovesong.mp3)
             </p>
           </div>
       )}

@@ -1,6 +1,7 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import '../../types';
 
 const Ring: React.FC<{ radius: number; speed: number; count: number; color: string }> = ({ radius, speed, count, color }) => {
   const ref = useRef<THREE.Points>(null);

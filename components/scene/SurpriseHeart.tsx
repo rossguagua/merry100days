@@ -14,9 +14,10 @@ const SurpriseHeart: React.FC = () => {
   const uniforms = useMemo(() => ({
     uTime: { value: 0 },
     uBoostIntensity: { value: 0 },
+    uExplosion: { value: 0 },
   }), []);
 
-  // Use a large heart geometry
+  // Use a heart geometry
   const { positions, colors, sizes, phases, densities } = useMemo(() => {
     const positions = new Float32Array(PARTICLE_COUNT * 3);
     const colors = new Float32Array(PARTICLE_COUNT * 3);
@@ -32,20 +33,20 @@ const SurpriseHeart: React.FC = () => {
       const t = Math.random() * Math.PI * 2;
       const r = Math.sqrt(Math.random());
       
-      // Bigger Heart Equation
-      // Scale multiplier is bigger here (e.g. 0.3)
+      // Heart Equation
       let x = 16 * Math.pow(Math.sin(t), 3);
       let y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
       
-      const scale = 0.3 * r; // Larger scale
+      // Make it smaller (0.12 scale)
+      const scale = 0.12 * r; 
       x *= scale;
       y *= scale;
       
-      // Add thickness
+      // Thickness
       const z = (Math.random() - 0.5) * 2.0 * (1 - r);
 
       positions[i * 3] = x;
-      positions[i * 3 + 1] = y + 2; // Move up slightly
+      positions[i * 3 + 1] = y + 3; // Move up to center it visually above tree
       positions[i * 3 + 2] = z;
 
       // Color Gradient
@@ -67,28 +68,35 @@ const SurpriseHeart: React.FC = () => {
   useEffect(() => {
     if (showSurprise && meshRef.current) {
        const material = meshRef.current.material as THREE.ShaderMaterial;
+       
+       // Reset state
+       material.uniforms.uExplosion.value = 0;
+       material.uniforms.uBoostIntensity.value = 2.0;
        material.opacity = 0;
        material.transparent = true;
-       material.uniforms.uBoostIntensity.value = 2.0;
        
-       // Fade in
-       gsap.to(material, { opacity: 1, duration: 1.5, ease: "power2.out" });
+       // Animation Sequence
+       const tl = gsap.timeline();
+
+       // 1. Fade In
+       tl.to(material, { opacity: 1, duration: 1.0, ease: "power2.out" });
        
-       // Sequence: Wait -> Flash -> Fade Out -> Start Video
-       const timeline = gsap.timeline({
-         onComplete: () => {
-           startVideo();
+       // 2. Wait a beat (heartbeat handled by shader)
+       tl.to({}, { duration: 1.5 });
+       
+       // 3. Flash before explosion
+       tl.to(material.uniforms.uBoostIntensity, { value: 8.0, duration: 0.5, ease: "power2.in" });
+       
+       // 4. Explosion!
+       tl.to(material.uniforms.uExplosion, { 
+         value: 1.0, 
+         duration: 0.8, 
+         ease: "expo.out",
+         onStart: () => {
+             // Trigger video slightly after explosion starts so it emerges from the particles
+             setTimeout(() => startVideo(), 150);
          }
        });
-
-       // 1. Show for 2 seconds
-       timeline.to({}, { duration: 2.0 });
-       
-       // 2. Flash bright
-       timeline.to(material.uniforms.uBoostIntensity, { value: 5.0, duration: 0.5, ease: "power3.in" });
-       
-       // 3. Fade out quickly
-       timeline.to(material, { opacity: 0, duration: 0.5 }, "<");
     }
   }, [showSurprise, startVideo]);
 
@@ -97,7 +105,7 @@ const SurpriseHeart: React.FC = () => {
        const material = meshRef.current.material as THREE.ShaderMaterial;
        material.uniforms.uTime.value = clock.getElapsedTime();
        // Slow rotation
-       meshRef.current.rotation.y = Math.sin(clock.getElapsedTime() * 0.5) * 0.3;
+       meshRef.current.rotation.y = Math.sin(clock.getElapsedTime() * 0.5) * 0.2;
     }
   });
 

@@ -1,3 +1,4 @@
+
 export const treeVert = `
 uniform float uTime;
 uniform float uBoostIntensity;
@@ -94,6 +95,7 @@ void main() {
 export const heartVert = `
 uniform float uTime;
 uniform float uBoostIntensity;
+uniform float uExplosion;
 attribute float aSize;
 attribute vec3 aColor;
 attribute float aPhase;
@@ -110,6 +112,17 @@ void main() {
   float pulse = sin(uTime * 2.5) * 0.05 + 1.0; 
   pos *= pulse;
   
+  // Explosion logic
+  if (uExplosion > 0.0) {
+     vec3 explosionDir = normalize(pos);
+     // Add some randomness to direction based on phase to make it less uniform
+     explosionDir.x += sin(aPhase) * 0.5;
+     explosionDir.y += cos(aPhase) * 0.5;
+     explosionDir = normalize(explosionDir);
+     
+     pos += explosionDir * uExplosion * 25.0;
+  }
+
   vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
   gl_PointSize = aSize * (0.8 + aDensity * 0.4) * (1.0 + uBoostIntensity * 0.8) * (300.0 / -mvPosition.z);
   gl_Position = projectionMatrix * mvPosition;
@@ -119,6 +132,7 @@ void main() {
 export const heartFrag = `
 uniform float uTime;
 uniform float uBoostIntensity;
+uniform float uExplosion;
 varying vec3 vColor;
 varying float vDensity;
 
@@ -141,6 +155,13 @@ void main() {
   vec3 finalColor = vColor * (coreStrength + halo) * sparkle * pulseIntensity;
   finalColor *= (1.0 + uBoostIntensity * 2.0);
   
-  gl_FragColor = vec4(finalColor, 1.0);
+  // Fade out during explosion
+  float alpha = 1.0;
+  if (uExplosion > 0.0) {
+      alpha = 1.0 - uExplosion * 2.0; // Fade out quickly
+      if (alpha < 0.0) alpha = 0.0;
+  }
+  
+  gl_FragColor = vec4(finalColor, alpha);
 }
 `;

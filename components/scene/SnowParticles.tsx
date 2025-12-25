@@ -2,6 +2,7 @@ import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { PointMaterial } from '@react-three/drei';
+import '../../types';
 
 const SNOW_COUNT = 2000;
 const RANGE = 30;
